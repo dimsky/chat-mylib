@@ -232,7 +232,7 @@ const gotoAdmin = function(){
     window.open("/admin","_blank");
 }
 const feedback = function(){
-     window.open("https://support.qq.com/product/538086","_blank");
+     window.open("https://www.xingshulin.com","_blank");
 }
 //发送按钮点击事件
 sendBtnEle.onclick = genFunc;
