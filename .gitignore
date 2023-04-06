@@ -11,4 +11,5 @@ upload/*
 
 #忽略文件类型
 .DS_Store
-# *.env
+*.env
+docker-compose.yml

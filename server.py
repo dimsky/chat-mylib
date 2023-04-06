@@ -5,6 +5,7 @@ from flask import Flask, render_template, request, jsonify,redirect, url_for,sen
 from mylib.service.exception import BaseException
 from mylib.service.ai_service import AIService
 from mylib.service.resource_service import ResourceService
+from mylib.service.log import logger
 
 import os
 from configparser import ConfigParser
@@ -55,10 +56,10 @@ def upload():
             file_path = os.path.join(os.getcwd(), UPLOAD_DIR, uuid_filename)
             file.seek(0)
             file.save(file_path)
-            print('收到上传文件:origon name=', file.filename, ', 保存后名称=', uuid_filename)
 
+            upsertProcess = lambda pages, index, tokens: logger.info("pages: {0} , index {1} , tokens {2}".format(pages, index, tokens))
             try:
-                resource = ResourceService().upsert(file_path=file_path, resource_id=id,resource_name = file.filename)
+                resource = ResourceService().upsert(file_path=file_path, resource_id=id, process=upsertProcess, resource_name = file.filename)
             except BaseException as e:
                 return upload_error_response(msg = e.message)
             except OpenAIError as openaie:

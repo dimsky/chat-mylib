@@ -6,7 +6,13 @@ import docx
 from mylib.service.exception import BaseException, ExceededMaxPagesError, ExceededMaxWordsError, UnsupportError
 import openpyxl
 import hashlib
+import unicodedata
 
+
+def to_halfwidth(text):
+    # 将字符串中的所有字符转换为半角
+    return unicodedata.normalize('NFKC', text)
+                                 
 
 class FileStruct:
     file_path = ''
@@ -24,8 +30,8 @@ class FileStruct:
 
 
 class FileParser:
-    SUPPORT_DOC_MAX_WORDS = 50000
-    SUPPORT_DOC_MAX_PAGES = 50
+    SUPPORT_DOC_MAX_WORDS = 500000
+    SUPPORT_DOC_MAX_PAGES = 500
     # SUPPORT_EXTS = ['.txt', '.csv', 'md', '.pdf', '.doc', '.docx', '.xlsx', 'xls']
     #word 没办法分页读取,暂时不支持
     SUPPORT_EXTS = ['.txt', '.csv', '.md', '.pdf','.xlsx']
@@ -77,6 +83,7 @@ class PDFParser(FileParser):
             # 读取每一页的内容
             for page in range(num_pages):
                 page_text = pdf.pages[page].extract_text()
+                page_text = to_halfwidth(page_text)
                 pages.append(page_text)
                 full_text += page_text
 

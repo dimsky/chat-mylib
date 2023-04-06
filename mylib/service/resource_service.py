@@ -11,7 +11,7 @@ from mylib.service.ai_service import AIService
 import os
 
 class ResourceService:
-    def upsert(self,file_path, resource_id, resource_name='') ->Resource:
+    def upsert(self,file_path, resource_id, process, resource_name='') ->Resource:
         """
         解析file_path文件内容,并存储起来(同时存储到MySQL 和 Qdrant). 通过文件内容到MD5得到ID值，如果ID重复则更新，确保同样的文件不会保留两份。
         :param file_path:
@@ -52,6 +52,8 @@ class ResourceService:
         #分页存储
         for page_no in range(len(file_struct.pages)):
             page_text = file_struct.pages[page_no]
+            page_tokens = AIService().num_tokens_from_string(page_text)
+            process(len(file_struct.pages), page_no, page_tokens)
             # 调用openai做embedding
             openai_embeddings = openai.Embedding.create(model="text-embedding-ada-002", input=page_text)
             embedding = openai_embeddings["data"][0]["embedding"]

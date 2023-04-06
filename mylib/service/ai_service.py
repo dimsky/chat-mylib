@@ -3,6 +3,8 @@ import openai
 from mylib.service.qdrant_service import QdrantService
 import os
 from mylib.service.log import logger
+import tiktoken
+
 
 class AIService:
     config = ConfigParser()
@@ -14,6 +16,9 @@ class AIService:
 
     OPENAI_EMBEDDING_MODEL = "text-embedding-ada-002"
     VECTOR_SIZE = 1536
+    OPENAI_EMBEDDING_MAX_TOKENS = 8192
+    OPENAI_EMBEDDING_TOKENIER = "cl100k_base"
+    
 
     OPENAI_CHAT_COMPLETION_MODEL = "gpt-3.5-turbo"
     def __make_summary_prompt(self, text):
@@ -51,7 +56,7 @@ class AIService:
                 + '资料名称:《'+ answer['resource_name'] +'》\n' \
                 + '所在页码:第' + str(answer['page_no'] + 1)+'页\n' \
                 + '资料内容:' + str(answer['text']) + '\n'
-        user_prompt3 = "请根据上述资料，回答下面的问题,不超过300字，如果必要，请给出相关资料的名称、页码和章节信息。\n"
+        user_prompt3 = "请根据上述资料，回答下面的问题,不超过400字，如果必要，请给出相关资料的名称、页码和章节信息。\n"
 
         post_prompts = [
             # {'role': 'system', 'content': system},
@@ -102,3 +107,9 @@ class AIService:
         result = completion.choices[0].message.content
         logger.debug("系统给的答案:{0}".format(result))
         return result
+    
+    def num_tokens_from_string(self,string: str, encoding_name: str = OPENAI_EMBEDDING_TOKENIER) -> int:
+        """Returns the number of tokens in a text string."""
+        encoding = tiktoken.get_encoding(encoding_name)
+        num_tokens = len(encoding.encode(string))
+        return num_tokens
