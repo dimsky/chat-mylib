@@ -8,3 +8,4 @@ openpyxl
 pymysql
 cryptography
 tiktoken
+python-pptx

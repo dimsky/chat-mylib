@@ -6,7 +6,7 @@ CREATE TABLE if not exists `resource` (
     `id` varchar(40) NOT NULL,
     `name` varchar(255) NOT NULL,
     `summary` text,
-    `type` enum('txt','pdf','word','excel') DEFAULT 'txt',
+    `type` enum('txt','pdf','word','excel','ppt') DEFAULT 'txt',
     `created_time` int(11) DEFAULT NULL,
     `updated_time` int(11) DEFAULT NULL,
     PRIMARY KEY (`id`)

@@ -7,7 +7,7 @@ from mylib.service.exception import BaseException, ExceededMaxPagesError, Exceed
 import openpyxl
 import hashlib
 import unicodedata
-
+from pptx import Presentation
 
 def to_halfwidth(text):
     # 将字符串中的所有字符转换为半角
@@ -34,17 +34,19 @@ class FileParser:
     SUPPORT_DOC_MAX_PAGES = 500
     # SUPPORT_EXTS = ['.txt', '.csv', 'md', '.pdf', '.doc', '.docx', '.xlsx', 'xls']
     #word 没办法分页读取,暂时不支持
-    SUPPORT_EXTS = ['.txt', '.csv', '.md', '.pdf','.xlsx']
+    SUPPORT_EXTS = ['.txt', '.csv', '.md', '.pdf','.xlsx', '.ppt', '.pptx']
 
     def __get_parser_by_ext(self, ext):
         if ext.lower() in ['.txt', '.md', '.csv']:
-            return TXTParser();
+            return TXTParser()
         elif ext.lower() in ['.pdf']:
-            return PDFParser();
+            return PDFParser()
         elif ext.lower() in ['.doc', '.docx']:
-            return WordParser();
+            return WordParser()
         elif ext.lower() in ['.xlsx']:
-            return ExcelParser();
+            return ExcelParser()
+        elif ext.lower() in ['.ppt', '.pptx']:
+            return PptParser()
 
     # 将文件内容解析为文本
     def parse(self, file_path)->FileStruct:
@@ -53,7 +55,7 @@ class FileParser:
         if ext not in self.SUPPORT_EXTS:
             raise UnsupportError('不支持的文件格式！ 目前支持的文件格式有:' + ','.join(self.SUPPORT_EXTS))
 
-        paraser = self.__get_parser_by_ext(ext);
+        paraser = self.__get_parser_by_ext(ext)
         return paraser.parse(file_path)
 
 
@@ -127,3 +129,33 @@ class ExcelParser(FileParser):
         md5 = hashlib.md5(full_text.encode('utf-8')).hexdigest()
         # 返回解析后的文本内容
         return FileStruct(file_path=file_path, type='excel', pages=[full_text], full_text=full_text, full_text_md5 = md5)
+    
+class PptParser(FileParser):
+    def parse(self, file_path)->FileStruct:
+        full_text = ''
+        pages = []
+        prs = Presentation(file_path)
+        num_pages = len(prs.slides)
+        for page in range(num_pages):
+            slide = prs.slides[page]
+            page_text = ""
+             # 遍历幻灯片上的每个形状
+            for shape in slide.shapes:
+                # 如果形状是文本框
+                if shape.has_text_frame:
+                    # 遍历文本框的每一段
+                    for paragraph in shape.text_frame.paragraphs:
+                        # 遍历段落中的每个文本片段
+                        for run in paragraph.runs:
+                            # 输出文本片段的内容
+                            page_text += run.text + " "
+            pages.append(page_text)
+            full_text += page_text
+        if (len(full_text) > self.SUPPORT_DOC_MAX_WORDS):
+            raise ExceededMaxWordsError('超出最大字数:' + str(self.SUPPORT_DOC_MAX_WORDS))
+        md5 = hashlib.md5(full_text.encode('utf-8')).hexdigest()
+        # 返回解析后的文本内容
+        return FileStruct(file_path=file_path, type='ppt', pages=pages, full_text=full_text, full_text_md5 = md5)
+
+
+        
